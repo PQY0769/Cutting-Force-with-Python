@@ -12,7 +12,6 @@
 
 import matplotlib.pyplot as plt
 get_ipython().run_line_magic('matplotlib', 'inline')
-import numpy as np
 from sklearn.linear_model import LinearRegression
 
 
@@ -106,4 +105,22 @@ plt.plot(Y，label='linear')
 plt.title('Force vs velocity')
 plt.ylabel('F')
 plt.xlabel('v')
+
+
+# 尝试多项式回归分析，在sklearn中可以把输入[x]重组为[x, x*x]再线性回归
+
+# In[ ]:
+
+from sklearn.preprocessing import PolynomialFeatures
+poly = PolynomialFeatures(degree = 2)
+x3_poly=poly.fit_transform(x3)
+reg.fit(x3_poly,F)
+Y_poly=reg.predict(x3_poly)
+
+plt.plot(F,label='test')
+plt.plot(Y_poly,label='poly')
+plt.title('test vs predict')
+plt.ylabel('F')
+plt.xlabel('v')
+
 
