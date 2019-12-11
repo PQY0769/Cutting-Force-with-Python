@@ -1,0 +1,109 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# # cutting force calculation
+
+# ## model input
+
+# 要想在 Jupyter notebook 中使用 matplotlib，需要告诉 Jupyter 获取 matplotlib 生成的所有图形，并将其嵌入 notebook 中。
+
+# In[50]:
+
+
+import matplotlib.pyplot as plt
+get_ipython().run_line_magic('matplotlib', 'inline')
+import numpy as np
+from sklearn.linear_model import LinearRegression
+
+
+# ## data input
+
+# 使用单海江在2019年发表于河南科技的《铣削加工切削力及功率的ANN算法研究》中的切削力试验数据
+
+# In[46]:
+
+
+ap=[2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4] #切深
+f=[0.100,0.200,0.300,0.125,0.250,0.375,0.167,0.333,0.500,0.600,0.125,0.250,0.375,0.167,0.333,0.500,0.250,0.300,0.500,0.240,0.167,0.200,0.250,0.125,0.188,0.250,0.160,0.240,0.300,0.150] #进给
+v=[94.248,94.248,94.248,75.398,75.398,75.398,56.549,56.549,56.549,47.124,75.398,75.398,75.398,56.549,56.549,56.549,37.699,37.699,37.699,47.124,56.549,56.549,56.549,75.398,75.398,75.398,47.124,47.124,47.124,37.699] #切削速度
+F=[233.33,373.33,606.67,233.33,513.33,793.33,280.00,606.67,933.33,933.33,373.33,746.67,1073.33,373.33,840.00,1260.00,1260.00,1213.33,2193.33,466.67,560.00,1166.67,1446.67,466.67,933.33,1073.33,980.00,1260.00,1586.67,513.33] #切削力
+
+
+# ## picture print
+
+# 单纯从数据分析角度，对单个因素进行分析，确实存在一定联系
+
+# In[47]:
+
+
+plt.plot(ap,F)
+plt.title('Force vs cutting depth')
+plt.ylabel('F')
+plt.xlabel('ap')
+
+
+# In[48]:
+
+
+plt.plot(f,F)
+plt.title('Force vs feed')
+plt.ylabel('F')
+plt.xlabel('f')
+
+
+# In[49]:
+
+
+plt.plot(v,F)
+plt.title('Force vs velocity')
+plt.ylabel('F')
+plt.xlabel('v')
+
+
+# 显然单因素无法得到有效的线性回归，我们尝试下多元线性回归的效果，首先把3个因素归一化再合并成一个输入数组
+
+# In[65]:
+
+
+x3=[]
+for a,b,c in zip(ap,f,v):
+    x3.append([a/4,b/1,c/100])
+print(x3)
+
+
+#  然后借助sklearn进行多元线性回归
+
+# In[72]:
+
+
+reg = LinearRegression()
+reg.fit(x3,F)
+print(reg.intercept_)
+print(reg.coef_)
+
+
+# In[83]:
+
+
+y0=int(reg.intercept_)
+y1=int(reg.coef_[0])
+y2=int(reg.coef_[1])
+y3=int(reg.coef_[2])
+Y=[]
+for i,x in enumerate(x3):
+    y=y0+y1*x[0]+y2*x[1]+y3*x[2]
+    Y.append(y)
+print(Y)
+
+
+# 再对照线性回归的计算结果与原始的切削力实测结果
+
+# In[ ]:
+
+
+plt.plot(F，label='test')
+plt.plot(Y，label='linear')
+plt.title('Force vs velocity')
+plt.ylabel('F')
+plt.xlabel('v')
+
