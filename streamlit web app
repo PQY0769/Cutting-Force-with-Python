@@ -29,11 +29,20 @@ y0=int(reg.intercept_)
 y1=int(reg.coef_[0])
 y2=int(reg.coef_[1])
 y3=int(reg.coef_[2])
-y=y0+y1*ap/4+y2*f/1+y3*v/100  #注意输入参数应该在训练参数的取值范围内，否则拟合效果不佳，还要做归一化再使用公式计算
+Y_list=[]
+for i,x in enumerate(x3_list):
+    y=y0+y1*x[0]+y2*x[1]+y3*x[2]
+    Y_list.append(y)
+
+import matplotlib.pyplot as plt 
+plt.plot(F_list,label='test')
+plt.plot(Y_list,label='linear')
+plt.title('test vs regression')
+plt.ylabel('F')
+plt.xlabel('v')
+st.pyplot()
 
 #输出切削力计算结果
-st.write('cutting force will be', y)
-
-
-
+predict=y0+y1*ap/4+y2*f/1+y3*v/100  #注意输入参数应该在训练参数的取值范围内，否则拟合效果不佳，还要做归一化再使用公式计算
+st.write('cutting force will be', predict)
     
