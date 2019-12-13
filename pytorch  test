@@ -1,6 +1,11 @@
+#学习pytorch的神经网络，包括单层等效线性回归，多层bp神经网络，自动编码器
+
+#导入画图模块
 import matplotlib.pyplot as plt
 %matplotlib inline
+#导入数据模块
 import numpy as np
+#导入pytorch
 import torch
 from torch import nn
 from torch.autograd import Variable
@@ -9,9 +14,10 @@ from torch.utils.data import DataLoader
 # 设定输入输出
 a=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
 b=[1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0]
+#设定样本数，用于后续的循环处理样本数组对神经网络的输入与输出
 train_samples=len(a)
 eval_samples=len(b)
-
+#构造空array以便后续填充再用于pytorch
 x=np.zeros((10,1))
 y=np.zeros((10,1))
 
@@ -29,6 +35,7 @@ for i in range(eval_samples):
 test_set=(x,y)    
 test_set=torch.tensor(test_set, dtype=torch.float32)  #pytorch拟合需要目标为32浮点
 
+#构造pytorch的数据集
 train_data = DataLoader(train_set, batch_size=len(x), shuffle=True)
 test_data = DataLoader(test_set, batch_size=len(x), shuffle=False)
 
@@ -36,16 +43,11 @@ test_data = DataLoader(test_set, batch_size=len(x), shuffle=False)
 # 设定网络
 net = nn.Sequential(
     nn.Linear(1, 1)  #如是1-1的网络，则等价于1维的线性回归
-#     nn.Linear(1, 2),
-#     nn.ReLU(),
-#     nn.Linear(2, 2),
-#     nn.ReLU(),
-#     nn.Linear(2, 1)
     )
 
 # 开始训练
 criterion = nn.MSELoss()  #以均方误差评估模型
-optimizer = torch.optim.SGD(net.parameters(), lr=1e-2, momentum=0.9)  #以梯度下降法优化神经网络参数，学习率0.01，动量）
+optimizer = torch.optim.SGD(net.parameters(), lr=1e-2, momentum=0.9)  #以梯度下降法优化神经网络参数，学习率0.01，加动量防止陷入局部最优解
 
 losses = []
 eval_losses = []
@@ -73,12 +75,14 @@ for e in range(20):
     for x, y in test_data:
         x = Variable(x)
         y = Variable(y)
+        #向前传播
         out = net(x)
         loss = criterion(out, y)
         # 记录误差
         eval_loss += loss.item()        
     eval_losses.append(eval_loss)
-    
+
+#提取输出，作图显示
 eval_out=[]
 eval_origin=[]
 for i in range(eval_samples):
@@ -111,7 +115,7 @@ net = nn.Sequential(
     )
 
 criterion = nn.MSELoss()  #以均方误差评估模型
-optimizer = torch.optim.SGD(net.parameters(), lr=1e-2, momentum=0.9)  #以梯度下降法优化神经网络参数，学习率0.01，动量减少局部最优解可能）
+optimizer = torch.optim.SGD(net.parameters(), lr=1e-2, momentum=0.9)  #以梯度下降法优化神经网络参数，学习率0.01，动量减少局部最优解
 
 # 开始训练
 losses = []
@@ -140,12 +144,14 @@ for e in range(20):
     for x, y in test_data:
         x = Variable(x)
         y = Variable(y)
+        #向前传播
         out = net(x)
         loss = criterion(out, y)
         # 记录误差
         eval_loss += loss.item()        
     eval_losses.append(eval_loss)
-    
+
+#提取输出，作图显示
 eval_out=[]
 eval_origin=[]
 for i in range(eval_samples):
@@ -169,7 +175,7 @@ ax2.plot(eval_origin, label='oringin Y')
 ax2.plot(eval_out, label='predict Y')
 ax2.legend()
 
-#ae
+#auto encoder
 # 定义网络
 class autoencoder(nn.Module):
     def __init__(self):
@@ -177,9 +183,13 @@ class autoencoder(nn.Module):
         
         self.encoder = nn.Sequential(
             nn.Linear(1, 2),
+            nn.ReLU(), 
+            nn.Linear(2, 2),
         )
         
         self.decoder = nn.Sequential(
+            nn.Linear(2, 2), 
+            nn.ReLU(),             
             nn.Linear(2, 1),
         )
 
@@ -191,7 +201,7 @@ class autoencoder(nn.Module):
 net = autoencoder()
 
 criterion = nn.MSELoss()  #以均方误差评估模型
-optimizer = torch.optim.SGD(net.parameters(), lr=1e-2, momentum=0.9)  #以梯度下降法优化神经网络参数，学习率0.01，动量减少局部最优解可能）
+optimizer = torch.optim.SGD(net.parameters(), lr=1e-2, momentum=0.9)  #以梯度下降法优化神经网络参数，学习率0.01，动量减少局部最优解可能
 
 # 开始训练自动编码器
 losses = []
@@ -205,7 +215,7 @@ for e in range(20):
         y = Variable(y)
         # 前向传播
         code, out = net(x)
-        loss = criterion(out, x)
+        loss = criterion(out, x)  #注意此处对比的是输入和还原的输入
         # 反向传播
         optimizer.zero_grad()
         loss.backward()
@@ -225,11 +235,12 @@ for e in range(20):
         # 记录误差
         eval_loss += loss.item()        
     eval_losses.append(eval_loss)
-    
+
+#提取输出，作图显示
 eval_out=[]
 eval_origin=[]
 for i in range(eval_samples):
-    extract_origin=y.data[i].numpy() # 把值从tensor转为numpy array再提取值
+    extract_origin=x.data[i].numpy() # 把值从tensor转为numpy array再提取值
     eval_origin.append(extract_origin[0])
     
     extract_predict=out.data[i].numpy() # 把值从tensor转为numpy array再提取值
@@ -238,18 +249,18 @@ for i in range(eval_samples):
 #    print('epoch: {}, Train Loss: {:.6f}, Eval Loss: {:.6f}'.format(e, train_loss , eval_loss))
 
 fig=plt.figure()
-ax1=fig.add_subplot(211) #2*1的图形 在第一个位置
+ax1=fig.add_subplot(211) #2*1的图形 在第1个位置
 ax1.set_title('loss and fit')
 ax1.plot(np.arange(len(losses)), losses, label='train loss')
 ax1.plot(np.arange(len(eval_losses)), eval_losses, label='test loss')
 ax1.legend()
 
-ax2=fig.add_subplot(212) #2*1的图形 在第一个位置
+ax2=fig.add_subplot(212) #2*1的图形 在第2个位置
 ax2.plot(eval_origin, label='oringin X')
 ax2.plot(eval_out, label='predict X')
 ax2.legend()    
 
-#code plot
+#显示生成的编码与y的联系
 ae_code0=[]
 ae_code1=[]
 label_origin=[]
@@ -282,3 +293,72 @@ for x, y, z, s in zip(Xa, Ya, Za, label):
     c = cm.rainbow(int(255*s))    # 上色
     ax.text(x, y, z, s, backgroundcolor=c)  # 标位子
 
+#使用生成的编码搭配神经网络进行线性回归，拟合y
+# 设定网络
+LR = nn.Sequential(
+    nn.Linear(2, 1),
+    )
+
+# 开始训练
+criterion = nn.MSELoss()  #以均方误差评估模型
+optimizer = torch.optim.SGD(LR.parameters(), lr=1e-2, momentum=0.9)  #指定训练LR而不是net的参数
+
+losses = []
+eval_losses = []
+
+for e in range(20):
+    train_loss = 0
+    LR.train()  # 将模型改为训练模式
+    net.eval()
+    for x, y in train_data:
+        x = Variable(x)
+        y = Variable(y)
+        # 前向传播
+        code, _ = net(x)
+        out=LR(code)
+        loss = criterion(out, y)  #注意此处对比的是y
+        # 反向传播
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        # 记录误差
+        train_loss += loss.item()        
+    losses.append(train_loss)
+
+    # 在测试集上检验效果
+    eval_loss = 0
+    LR.eval() # 将模型改为预测模式
+    for x, y in test_data:
+        x = Variable(x)
+        y = Variable(y)
+        # 前向传播
+        code, _ = net(x)
+        out=LR(code)
+        loss = criterion(out, y)
+        # 记录误差
+        eval_loss += loss.item()        
+    eval_losses.append(eval_loss)
+
+#提取输出，作图显示
+eval_out=[]
+eval_origin=[]
+for i in range(samples):
+    extract_origin=y.data[i].numpy() # 把值从tensor转为numpy array再提取值
+    eval_origin.append(extract_origin[0])
+    
+    extract_predict=out.data[i].numpy() # 把值从tensor转为numpy array再提取值
+    eval_out.append(extract_predict[0])
+
+#    print('epoch: {}, Train Loss: {:.6f}, Eval Loss: {:.6f}'.format(e, train_loss , eval_loss))
+
+fig=plt.figure()
+ax1=fig.add_subplot(211) #2*1的图形 在第1个位置
+ax1.set_title('loss and fit')
+ax1.plot(np.arange(len(losses)), losses, label='train loss')
+ax1.plot(np.arange(len(eval_losses)), eval_losses, label='test loss')
+ax1.legend()
+
+ax2=fig.add_subplot(212) #2*1的图形 在第2个位置
+ax2.plot(eval_origin, label='oringin Y')
+ax2.plot(eval_out, label='predict Y')
+ax2.legend()
