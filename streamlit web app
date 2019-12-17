@@ -3,16 +3,18 @@
 #如果是要把自己的程序发布到网页，可以自己做一个等待网页引用的xxx.py文件，然后在cmd运行streamlit run xxx.py，然后网页服务就会启动然后引用此py文件，也会提示连接此网页的地址。
 
 import streamlit as st
-#用slider的方式在网页进行交互，输入切削工艺参数
-ap = st.slider('ap', min_value=2.0, max_value=4.0)
-f = st.slider('f', min_value=0.1, max_value=0.5)
-v = st.slider('v', min_value=50, max_value=70)
-
+st.markdown('# Cutting Force Predict Web App')
+st.write('cutting force model info')
+#计算拟合模型，后期可以尝试调研存储模型以减少运算时间
 #使用单海江在2019年发表于河南科技的《铣削加工切削力及功率的ANN算法研究》中的切削力试验数据
 ap_list=[2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4] #切深
 f_list=[0.100,0.200,0.300,0.125,0.250,0.375,0.167,0.333,0.500,0.600,0.125,0.250,0.375,0.167,0.333,0.500,0.250,0.300,0.500,0.240,0.167,0.200,0.250,0.125,0.188,0.250,0.160,0.240,0.300,0.150] #进给
 v_list=[94.248,94.248,94.248,75.398,75.398,75.398,56.549,56.549,56.549,47.124,75.398,75.398,75.398,56.549,56.549,56.549,37.699,37.699,37.699,47.124,56.549,56.549,56.549,75.398,75.398,75.398,47.124,47.124,47.124,37.699] #切削速度
 F_list=[233.33,373.33,606.67,233.33,513.33,793.33,280.00,606.67,933.33,933.33,373.33,746.67,1073.33,373.33,840.00,1260.00,1260.00,1213.33,2193.33,466.67,560.00,1166.67,1446.67,466.67,933.33,1073.33,980.00,1260.00,1586.67,513.33] #切削力
+
+#显示输入数据
+if st.checkbox('Show cutting force input data'):
+    st.write(F_list)
 
 #把3个因素重组为一个多维输入并归一化
 x3_list=[]
@@ -29,20 +31,54 @@ y0=int(reg.intercept_)
 y1=int(reg.coef_[0])
 y2=int(reg.coef_[1])
 y3=int(reg.coef_[2])
+
+#输出回归
 Y_list=[]
 for i,x in enumerate(x3_list):
     y=y0+y1*x[0]+y2*x[1]+y3*x[2]
     Y_list.append(y)
 
+#显示切削力实测与拟合对照图
 import matplotlib.pyplot as plt 
-plt.plot(F_list,label='test')
-plt.plot(Y_list,label='linear')
-plt.title('test vs regression')
-plt.ylabel('F')
-plt.xlabel('v')
-st.pyplot()
+if st.checkbox('Show cutting force regression'):
+    plt.plot(F_list,label='test')
+    plt.plot(Y_list,label='linear')
+    plt.title('test vs regression')
+    plt.ylabel('F')
+    plt.xlabel('v')
+    st.pyplot()
 
+#计算任意输入对应切削力
+st.write('input cutting parameters')    
+#用slider的方式在网页进行交互，输入切削工艺参数
+ap = st.slider('ap', min_value=2.0, max_value=4.0)
+f = st.slider('f', min_value=0.1, max_value=0.5)
+v = st.slider('v', min_value=50, max_value=70)
 #输出切削力计算结果
 predict=y0+y1*ap/4+y2*f/1+y3*v/100  #注意输入参数应该在训练参数的取值范围内，否则拟合效果不佳，还要做归一化再使用公式计算
-st.write('cutting force will be', predict)
-    
+st.write('and the cutting force will be', int(predict))
+
+#在同一个页面里尝试计算固有频率，先列举过往计算历史记录，再根据输入计算结果
+#登记固有频率的历史记录
+st.markdown('# Frequency Predict Web App')
+bearing = st.radio('bearing type',['fag7008c', 'gmn7008c'])
+preload = st.radio('bearing preload',['medium', 'heavy'])
+bearing_info=[['fag7008c','medium','preload 70N','stiffness 46N/um','predict 882Hz'],
+          ['fag7008c','heavy','preload 139N','stiffness 61N/um','predict 1015Hz'],
+          ['gmn7008c','medium','preload 160N','stiffness 65N/um','predict 1048Hz'],
+          ['gmn7008c','heavy','preload 330N','stiffness 88N/um','predict 1220Hz']]
+#输出固有频率历史记录
+st.write('the frequency information shall be') 
+for i,info in enumerate(bearing_info):
+    if info[0] == bearing and info[1] == preload:
+        st.write(info)
+
+#计算指定刚度轴承在大o配对轴系里的固有频率
+st.write('spindle info input') 
+#用slider的方式在网页进行交互，输入轴承刚度
+bearing_stif = st.slider('bearing stiffness', min_value=30, max_value=90)
+spindle_mass = st.slider('spindle_mass', min_value=1, max_value=10)
+#输出固有频率计算结果
+import math
+frequency=math.sqrt(2*1000000*bearing_stif/spindle_mass)/(2*3.14)
+st.write('the frequency shall be ', int(frequency))
