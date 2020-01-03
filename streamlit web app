@@ -1,3 +1,4 @@
+#https://streamlit.io/
 #为了把切削力校核的程序发布到网页，方便不同业务员快速计算以便选型，寻求方便的web应用发布方案。
 #从推送中发现streamlit，其安装后于cmd或者anaconda promt输入streamlit hello会提示输入邮件，直接回车，则会提示可连接streamlit的地址，并在浏览器里打开该地址对应网页。如果要修改默认启动网页的内容，需要找到网页引用的py文件，这个在streamlit的安装文件夹里（我是先通过anaconda装python 3.0再pip install streamlit的，所以streamlit文件夹是在anaconda文件夹里面，需要先找anaconda文件夹，如果找不到可以在启动菜单栏里的anaconda图标右键点属性看路径，比如我用的公司电脑就隐藏了这些文件夹）。
 #如果是要把自己的程序发布到网页，可以自己做一个等待网页引用的xxx.py文件，然后在cmd运行streamlit run xxx.py，然后网页服务就会启动然后引用此py文件，也会提示连接此网页的地址。
