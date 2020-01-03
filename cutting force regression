@@ -3,7 +3,9 @@
 
 # # cutting force calculation
 
-# ## model input
+#https://www.cnblogs.com/the-wolf-sky/articles/10053855.html
+#https://blog.csdn.net/weixin_38859557/article/details/80779115
+# model input
 
 # 要想在 Jupyter notebook 中使用 matplotlib，需要告诉 Jupyter 获取 matplotlib 生成的所有图形，并将其嵌入 notebook 中。
 
