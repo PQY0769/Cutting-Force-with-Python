@@ -1,5 +1,5 @@
 #学习pytorch的神经网络，包括单层等效线性回归，多层bp神经网络，自动编码器
-
+#https://github.com/L1aoXingyu/code-of-learn-deep-learning-with-pytorch/blob/master/chapter5_RNN/pytorch-rnn.ipynb
 #导入画图模块
 import matplotlib.pyplot as plt
 %matplotlib inline
